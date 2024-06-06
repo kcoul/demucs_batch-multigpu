@@ -17,7 +17,7 @@ def get_size(file_path, unit='kb'):
         return round(size, 3)
     
 class DemucsDataSet:
-    def __init__(self, input_path, audio_channels, samplerate, out, model_name, ext, audiolength, drop_kb = 180):
+    def __init__(self, input_path, audio_channels, samplerate, out, model_name, ext, drop_kb = 180):
         self.path = input_path
         self.file_list = list(self.path.rglob('**/*.mp3')) + list(self.path.rglob('**/*.wav'))
 
@@ -31,27 +31,19 @@ class DemucsDataSet:
 
         self.audio_channels = audio_channels
         self.samplerate = samplerate
-        self.audiolength = audiolength
     
     def __getitem__(self, idx):
         fn = self.file_list[idx]
 
         wav = load_track(fn, self.audio_channels, self.samplerate)
 
-        if len(wav.shape) == 1 :
-            th.stack([wav,wav], dim=0)
-        if wav.shape[-1] >= self.audiolength :
-            wav = wav[:, : self.audiolength]
-        else :
-            wav = th.concat([wav,th.zeros(wav.shape[0],self.audiolength - wav.shape[1])], dim = -1)
-
         is_zero = wav == 0
-        wav = wav + is_zero * 1e-7 #adding eps to zeros so that can be devided by mean value at a line below.
+        wav = wav + is_zero * 1e-7  # adding eps to zeros so that can be divided by mean value at a line below.
 
         ref = wav.mean(0)
         wav -= ref.mean()
         wav /= ref.std()
-        return (wav, ref.mean(), ref.std(), str(fn))
+        return wav, ref.mean(), ref.std(), str(fn)
     
     def __len__(self):
         return len(self.file_list)

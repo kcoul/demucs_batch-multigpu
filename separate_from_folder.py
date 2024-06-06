@@ -1,8 +1,8 @@
-from pathlib import Path 
-import os 
+from pathlib import Path
 import argparse
-import torch as th
-from tqdm import tqdm
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
+import torch
 
 import demucs.separate, demucs.separate_multigpu
 
@@ -32,20 +32,20 @@ def main():
                         "--model_name",
                         default="mdx_extra",
                         help="Model name")
-    parser.add_argument("-l",
+    parser.add_argument("-l", # NO LONGER USED
                         "--audiolength",
                         type = int,
-                        default=1324800,
+                        default=-1,
                         help="Length of the audio(sr) based on model's sr. (44100 based default)")
     parser.add_argument("-d",
                         "--device",
-                        default="cuda" if th.cuda.is_available() else "cpu",
+                        default="cuda" if torch.cuda.is_available() else "cpu",
                         help="Device to use, default is cuda if available else cpu")
     parser.add_argument("-sr",
                         "--sample_rate",
                         type = int,
                         default=None,
-                        help="Output sample rate. Resampleing from 44100Hz")
+                        help="Output sample rate. Resampling from 44100Hz")
     parser.add_argument("--shifts",
                         default=1,
                         type=int,
@@ -98,7 +98,7 @@ def main():
     parser.add_argument("--drop_kb",
                         default=180,
                         type=int,
-                        help="Files with size under drop_kb will be omitted, for corrputed file omission.")
+                        help="Files with size under drop_kb will be omitted, for corrupted file omission.")
     parser.add_argument("--num_worker",
                         default=8,
                         type=int,
@@ -127,10 +127,12 @@ def main():
 
     params.append(str(args.input_path))
 
-    if th.cuda.device_count() > 1:
-        demucs.separate_multigpu.main(params)
-    else:
-        demucs.separate.main(params)
+    if torch.cuda.is_available():
+        device_count = torch.cuda.device_count()
+        if device_count > 1:
+            demucs.separate_multigpu.main(params)
+        else:
+            demucs.separate.main(params)
 
 if __name__ == "__main__":
     main()

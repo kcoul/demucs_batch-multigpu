@@ -53,7 +53,7 @@ def get_parser():
     parser.add_argument("-l",
                         "--audiolength",
                         type =int,
-                        default=1324800,
+                        default=-1,
                         help="Length of the audio(sr) based on model's sr. (44100 based default)")
     parser.add_argument("-d",
                         "--device",
@@ -182,7 +182,7 @@ def main(opts=None):
     if args.sample_rate is not None : 
             kwargs['samplerate'] = args.sample_rate
 
-    dataset = DemucsDataSet(args.input_path, model.module.audio_channels, model.module.samplerate, args.out, args.name, ext, args.audiolength, drop_kb = 180)
+    dataset = DemucsDataSet(args.input_path, model.module.audio_channels, model.module.samplerate, args.out, args.name, ext, drop_kb = 180)
     dataloader = DataLoader(dataset, batch_size = args.n_batch, num_workers = args.num_worker, shuffle = False, pin_memory = True)
 
     for batch, means, stds, tracks in tqdm(dataloader):
@@ -245,7 +245,11 @@ def main(opts=None):
                 if args.sample_rate is not None :
                     other_stem = librosa.resample(other_stem.detach().cpu().numpy(), orig_sr = model.module.samplerate, target_sr = args.sample_rate)
                 save_audio(th.Tensor(other_stem), str(stem), **kwargs)
-        del b_sources, sources, other_stem, batch
+        del b_sources, sources, batch
+        try:
+            del other_stem
+        except NameError:
+            print("other_stem not defined")
         gc.collect()
 
 if __name__ == "__main__":
