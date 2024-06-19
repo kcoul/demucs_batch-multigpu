@@ -19,7 +19,11 @@ def get_size(file_path, unit='kb'):
 class DemucsDataSet:
     def __init__(self, input_path, audio_channels, samplerate, out, model_name, ext, drop_kb = 180):
         self.path = input_path
-        self.file_list = list(self.path.rglob('**/*.mp3')) + list(self.path.rglob('**/*.wav'))
+        self.file_list = (list(self.path.rglob('**/*.mp3')) + list(self.path.rglob('**/*.wav'))
+                          # + list(self.path.rglob('**/*.flac')) + list(self.path.rglob('**/*.aif'))
+                          # + list(self.path.rglob('**/*.aiff')) + list(self.path.rglob('**/*.aac'))
+                          # + list(self.path.rglob('**/*.alac'))
+                          )
 
         print("Number of initially loaded files : ", len(self.file_list))
         ffiles = []
