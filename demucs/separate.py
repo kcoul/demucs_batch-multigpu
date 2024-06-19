@@ -193,6 +193,7 @@ def main(opts=None):
             subdir = track.relative_to(Path(args.clone_subdir)).parent
             if args.stem is None:
                 for source, name in zip(sources, model.sources):
+                    name = track.name.rsplit(".", 1)[0] + "_" + name
                     stem = out / subdir / args.filename.format(track=track.name.rsplit(".", 1)[0],
                                                     trackext=track.name.rsplit(".", 1)[-1],
                                                     stem=name, ext=ext)

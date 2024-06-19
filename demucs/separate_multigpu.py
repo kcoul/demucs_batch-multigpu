@@ -36,12 +36,12 @@ def get_parser():
                         help="Folder where to put extracted tracks. A subfolder "
                         "with the model name will be created.")
     parser.add_argument("--filename",
-                        default="{track}/{stem}.{ext}",
+                        default="{track}/{track}_{stem}.{ext}",
                         help="Set the name of output file. \n"
                         'Use "{track}", "{trackext}", "{stem}", "{ext}" to use '
                         "variables of track name without extension, track extension, "
                         "stem name and default output file extension. \n"
-                        'Default is "{track}/{stem}.{ext}".')
+                        'Default is "{track}/{track}_{stem}.{ext}".')
     parser.add_argument("-c",
                         "--clone_subdir",
                         default=None,
@@ -100,7 +100,7 @@ def get_parser():
                         "--sample_rate",
                         type =int,
                         default=None,
-                        help="Output sample rate. Resampleing from 44100Hz")
+                        help="Output sample rate. Resampling from 44100Hz")
     parser.add_argument("--mp3-bitrate",
                         default=128,
                         type=int,
@@ -116,7 +116,7 @@ def get_parser():
     parser.add_argument("--drop_kb",
                         default=180,
                         type=int,
-                        help="Files with size under drop_kb will be omitted, for corrputed file omission.")
+                        help="Files with size under drop_kb will be omitted, for corrupted file omission.")
     parser.add_argument("--num_worker",
                         default=8,
                         type=int,
@@ -198,6 +198,7 @@ def main(opts=None):
             subdir = track.relative_to(Path(args.clone_subdir)).parent
             if args.stem is None:
                 for source, name in zip(sources, model.module.sources):
+                    name = track.name.rsplit(".", 1)[0] + "_" + name
                     stem = out / subdir / args.filename.format(track=track.name.rsplit(".", 1)[0],
                                                     trackext=track.name.rsplit(".", 1)[-1],
                                                     stem=name, ext=ext)
@@ -213,7 +214,7 @@ def main(opts=None):
                                                 stem=args.stem, ext=ext)
                 stem.parent.mkdir(parents=True, exist_ok=True)
                 sources.pop(model.module.sources.index('vocals'))
-                # Warning : after poping the stem, selected stem is no longer in the list 'sources'
+                # Warning : after popping the stem, selected stem is no longer in the list 'sources'
                 other_stem = th.zeros_like(sources[0])
                 for i in sources:
                     other_stem += i
@@ -251,6 +252,7 @@ def main(opts=None):
         except NameError:
             print("other_stem not defined")
         gc.collect()
+
 
 if __name__ == "__main__":
     main()
